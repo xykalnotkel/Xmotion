@@ -32,7 +32,7 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(keystoreProps['storeFile'] ?: 'keystore/xmotion-release.jks')
+            storeFile rootProject.file(keystoreProps['storeFile'] ?: 'keystore/xmotion-release.jks')
             storePassword keystoreProps['storePassword'] ?: 'xmotion-release-2026'
             keyAlias keystoreProps['keyAlias'] ?: 'xmotion'
             keyPassword keystoreProps['keyPassword'] ?: 'xmotion-release-2026'
