@@ -1,70 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_dark"
+    android:background="@color/near_black"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="XMotion"
+            android:textColor="@color/white"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/txtNativeInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="engine…"
+            android:textColor="@color/gray"
+            android:textSize="10sp" />
+    </LinearLayout>
+
     <ScrollView
-        android:id="@+id/scroll"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:fillViewport="true"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="24dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="XMotion"
-                android:textColor="@color/text_primary"
-                android:textSize="30sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/app_tagline"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/txtNativeInfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Native engine…"
-                android:textColor="@color/accent2"
-                android:textSize="12sp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnPick"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/pick_video"
-                android:textColor="@color/white"
-                app:icon="@android:drawable/ic_menu_gallery"
-                app:backgroundTint="@color/accent" />
-
-            <!-- Preview area -->
+            <!-- Preview / Player -->
             <FrameLayout
                 android:id="@+id/previewContainer"
                 android:layout_width="match_parent"
-                android:layout_height="230dp"
-                android:layout_marginTop="12dp"
-                android:background="@color/surface_dark">
+                android:layout_height="240dp"
+                android:background="@color/black"
+                android:clickable="true"
+                android:onClick="togglePreview">
 
                 <ImageView
                     android:id="@+id/imgPreview"
@@ -74,23 +72,21 @@
                     android:scaleType="centerInside"
                     android:visibility="gone" />
 
-                <!-- Video player (Media3) -->
                 <androidx.media3.ui.PlayerView
                     android:id="@+id/playerView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:visibility="gone" />
-            </FrameLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/preview"
-                android:textColor="@color/white"
-                app:backgroundTint="@color/surface_dark"
-                android:enabled="false" />
+                <TextView
+                    android:id="@+id/txtTapPreview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/pick_video"
+                    android:textColor="@color/gray"
+                    android:textSize="16sp" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/txtVideoInfo"
@@ -98,117 +94,227 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/no_video"
-                android:textColor="@color/text_secondary"
+                android:textColor="@color/gray_light"
                 android:textSize="13sp" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPick"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/pick_video"
+                android:textColor="@color/black"
+                app:backgroundTint="@color/white" />
+
+            <!-- FILTER -->
             <TextView
-                android:id="@+id/lblRes"
+                android:id="@+id/lblFilter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:text="Resolusi Output"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:textSize="15sp" />
+                android:layout_marginTop="20dp"
+                android:text="@string/filter_section"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:scrollbars="none">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipFilter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleLine="true"
+                    app:selectionRequired="true">
+
+                    <com.google.android.material.chip.Chip
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/id_0"
+                        android:text="@string/filter_original"
+                        android:checked="true" />
+                    <com.google.android.material.chip.Chip
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/id_1"
+                        android:text="@string/filter_bw" />
+                    <com.google.android.material.chip.Chip
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/id_2"
+                        android:text="@string/filter_sepia" />
+                    <com.google.android.material.chip.Chip
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/id_3"
+                        android:text="@string/filter_invert" />
+                    <com.google.android.material.chip.Chip
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/id_4"
+                        android:text="@string/filter_vivid" />
+                    <com.google.android.material.chip.Chip
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/id_5"
+                        android:text="@string/filter_blur" />
+                </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
+
+            <!-- TRIM -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/trim_section"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtTrim"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="0.0s – 0.0s"
+                android:textColor="@color/gray_light"
+                android:textSize="12sp" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slTrimStart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:valueFrom="0"
+                android:valueTo="100"
+                android:stepSize="0.1"
+                android:value="0" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slTrimEnd"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:valueFrom="0"
+                android:valueTo="100"
+                android:stepSize="0.1"
+                android:value="100" />
+
+            <!-- RATIO -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/ratio_section"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipRatio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/id_10"
+                    android:text="Asli"
+                    android:checked="true" />
+                <com.google.android.material.chip.Chip
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/id_6"
+                    android:text="1:1" />
+                <com.google.android.material.chip.Chip
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/id_7"
+                    android:text="9:16" />
+                <com.google.android.material.chip.Chip
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/id_8"
+                    android:text="16:9" />
+                <com.google.android.material.chip.Chip
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/id_9"
+                    android:text="4:5" />
+            </com.google.android.material.chip.ChipGroup>
+
+            <!-- OUTPUT -->
+            <TextView
+                android:id="@+id/lblOutput"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/output_section"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <Spinner
                 android:id="@+id/spRes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:backgroundTint="@color/accent" />
-
-            <TextView
-                android:id="@+id/lblQuality"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="Kualitas / Bitrate"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:textSize="15sp" />
+                android:layout_marginTop="4dp" />
 
             <Spinner
                 android:id="@+id/spQuality"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:backgroundTint="@color/accent" />
-
-            <TextView
-                android:id="@+id/lblFps"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="@string/fps_label"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:textSize="15sp" />
+                android:layout_marginTop="4dp" />
 
             <Spinner
                 android:id="@+id/spFps"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:backgroundTint="@color/accent" />
+                android:layout_marginTop="4dp" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/swHevc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="6dp"
                 android:text="@string/hevc_label"
-                android:textColor="@color/text_primary" />
+                android:textColor="@color/white" />
 
-            <TextView
-                android:id="@+id/lblBright"
-                android:layout_width="wrap_content"
+            <!-- ACTIONS -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConvertPhoto"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
-                android:text="@string/brightness_label"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:textSize="15sp" />
-
-            <com.google.android.material.slider.Slider
-                android:id="@+id/slBright"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:valueFrom="-100"
-                android:valueTo="100"
-                android:stepSize="1"
-                android:value="0" />
-
-            <TextView
-                android:id="@+id/lblContrast"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/contrast_label"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:textSize="15sp" />
-
-            <com.google.android.material.slider.Slider
-                android:id="@+id/slContrast"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:valueFrom="50"
-                android:valueTo="300"
-                android:stepSize="1"
-                android:value="100" />
+                android:text="@string/convert_photo"
+                android:textColor="@color/white"
+                app:backgroundTint="@color/surface_light" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCompress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
+                android:layout_marginTop="10dp"
                 android:text="@string/compress"
-                android:textColor="@color/white"
-                app:backgroundTint="@color/accent2"
+                android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:padding="6dp" />
+                app:backgroundTint="@color/white" />
 
             <TextView
                 android:id="@+id/txtProgressLabel"
@@ -216,7 +322,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
                 android:text=""
-                android:textColor="@color/text_secondary"
+                android:textColor="@color/gray_light"
                 android:textSize="13sp"
                 android:visibility="gone" />
 
@@ -236,16 +342,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text=""
-                android:textColor="@color/accent2"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Tips: HEVC (H.265) menghasilkan file lebih kecil. Atur FPS untuk memperhalus atau mengecilkan video. 4K &amp; FPS tinggi butuh device mumpuni."
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:textColor="@color/white"
+                android:textSize="13sp" />
         </LinearLayout>
     </ScrollView>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
