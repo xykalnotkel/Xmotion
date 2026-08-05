@@ -22,6 +22,8 @@ import com.google.android.material.tabs.TabLayout
 import com.xmotion.app.databinding.ActivityGalleryBinding
 import com.xmotion.app.databinding.ItemMediaBinding
 
+data class MediaItem(val uri: Uri, val durationMs: Long)
+
 /**
  * Galeri: menampilkan video & foto dengan tab + dropdown folder/album.
  */
@@ -123,9 +125,7 @@ class GalleryActivity : AppCompatActivity() {
             .show()
     }
 
-    data class MediaItem(val uri: Uri, val durationMs: Long)
-
-    inner class MediaAdapter : RecyclerView.Adapter<MediaAdapter.VH>() {
+    inner class MediaAdapter : RecyclerView.Adapter<MediaViewHolder>() {
         private val data = mutableListOf<MediaItem>()
 
         fun submit(list: List<MediaItem>) {
@@ -133,12 +133,12 @@ class GalleryActivity : AppCompatActivity() {
             notifyDataSetChanged()
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
             val b = ItemMediaBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            return VH(b)
+            return MediaViewHolder(b)
         }
 
-        override fun onBindViewHolder(h: VH, pos: Int) {
+        override fun onBindViewHolder(h: MediaViewHolder, pos: Int) {
             val item = data[pos]
             Glide.with(this@GalleryActivity).load(item.uri).centerCrop().into(h.binding.thumb)
             if (isVideoTab && item.durationMs > 0) {
@@ -153,9 +153,9 @@ class GalleryActivity : AppCompatActivity() {
         }
 
         override fun getItemCount() = data.size
-
-        class VH(val binding: ItemMediaBinding) : RecyclerView.ViewHolder(binding.root)
     }
+
+    class MediaViewHolder(val binding: ItemMediaBinding) : RecyclerView.ViewHolder(binding.root)
 
     private fun openInEditor(item: MediaItem) {
         val intent = Intent(this, EditorActivity::class.java)
