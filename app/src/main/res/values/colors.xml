@@ -10,4 +10,5 @@
     <color name="gray_light">#FFBEBEBE</color>
     <color name="accent_white">#FFFFFFFF</color>
     <color name="ic_launcher_background">#FF000000</color>
+    <color name="black_60">#99000000</color>
 </resources>
