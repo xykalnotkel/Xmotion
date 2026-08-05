@@ -97,6 +97,106 @@
                 android:textColor="@color/gray_light"
                 android:textSize="13sp" />
 
+            <!-- MULTI-LAYER OVERLAY EDITOR -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Overlay &amp; Keyframe"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:text="+ Teks"
+                    android:textColor="@color/black"
+                    app:backgroundTint="@color/white" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDelOverlay"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:text="Hapus"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@color/surface_light" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/txtOverlayHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Geser di preview untuk posisi · slider untuk skala/rotasi"
+                android:textColor="@color/gray"
+                android:textSize="11sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Skala"
+                android:textColor="@color/gray_light"
+                android:textSize="12sp" />
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slScale"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:valueFrom="0.1"
+                android:valueTo="3.0"
+                android:stepSize="0.01"
+                android:value="0.4" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rotasi (°)"
+                android:textColor="@color/gray_light"
+                android:textSize="12sp" />
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slRot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:valueFrom="-180"
+                android:valueTo="180"
+                android:stepSize="1"
+                android:value="0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Timeline (ketuk untuk set keyframe)"
+                android:textColor="@color/gray_light"
+                android:textSize="12sp" />
+            <SeekBar
+                android:id="@+id/timeline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000" />
+
+            <TextView
+                android:id="@+id/txtOverlayInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/gray"
+                android:textSize="11sp" />
+
+
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPick"
                 android:layout_width="match_parent"

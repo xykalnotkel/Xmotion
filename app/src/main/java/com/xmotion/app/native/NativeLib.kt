@@ -22,4 +22,14 @@ object NativeLib {
     external fun adjustContrast(pixels: IntArray, length: Int, factor: Float)
     external fun adjustSaturation(pixels: IntArray, length: Int, amount: Float)
     external fun applyBlur(pixels: IntArray, width: Int, height: Int, radius: Int)
+
+    /**
+     * Komposisi multi-layer: gambar overlay (ovl) di atas dst dengan
+     * transformasi affine (pusat cx,cy · scale · rotation derajat · alpha 0..1).
+     */
+    external fun composeOverlay(
+        dst: IntArray, dw: Int, dh: Int,
+        ovl: IntArray, ow: Int, oh: Int,
+        cx: Float, cy: Float, scale: Float, rotDeg: Float, alpha: Float
+    )
 }

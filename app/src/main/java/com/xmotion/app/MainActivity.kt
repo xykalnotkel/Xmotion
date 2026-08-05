@@ -30,6 +30,16 @@ class MainActivity : AppCompatActivity() {
     private var originalBitmap: Bitmap? = null
     private var filteredBitmap: Bitmap? = null
 
+    // ---- Multi-layer overlay + keyframe editor ----
+    data class Keyframe(val tMs: Float, var cx: Float, var cy: Float, var scale: Float, var rot: Float)
+    class OverlayLayer(val bitmap: Bitmap) {
+        val keyframes = mutableListOf<Keyframe>()
+        var selected = true
+    }
+    private val overlays = mutableListOf<OverlayLayer>()
+    private var selectedOverlay: OverlayLayer? = null
+    private var currentTimeMs = 0f
+
     private val resOptions = arrayOf("Original", "480p", "720p", "1080p", "2K", "4K")
     private val resHeights = arrayOf(0, 480, 720, 1080, 1440, 2160)
     private val qualityOptions = arrayOf("Rendah", "Sedang", "Tinggi")
@@ -62,6 +72,7 @@ class MainActivity : AppCompatActivity() {
         setupSpinners()
         setupFilterChips()
         setupTrim()
+        setupOverlay()
         setupButtons()
     }
 
@@ -98,6 +109,167 @@ class MainActivity : AppCompatActivity() {
         binding.btnPick.setOnClickListener { pickVideo.launch("video/*") }
         binding.btnCompress.setOnClickListener { startCompress() }
         binding.btnConvertPhoto.setOnClickListener { convertToPhoto() }
+    }
+
+    // ================= OVERLAY + KEYFRAME EDITOR =================
+
+    private fun setupOverlay() {
+        binding.btnAddText.setOnClickListener { addTextOverlay() }
+        binding.btnDelOverlay.setOnClickListener { removeSelectedOverlay() }
+        binding.timeline.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
+                if (!fromUser) return
+                val t = if (durationMs > 0) p / 1000f * durationMs else 0f
+                currentTimeMs = t
+                syncSliderToPlayhead()
+                renderPreview()
+            }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+        binding.slScale.addOnChangeListener { _, _, _ -> updateSelectedTransform(); renderPreview() }
+        binding.slRot.addOnChangeListener { _, _, _ -> updateSelectedTransform(); renderPreview() }
+        // drag untuk pindahkan overlay
+        binding.previewContainer.setOnTouchListener { _, ev ->
+            handleOverlayDrag(ev) ; true
+        }
+    }
+
+    private fun handleOverlayDrag(ev: android.view.MotionEvent) {
+        val ov = selectedOverlay ?: return
+        val base = filteredBitmap ?: return
+        val x = ev.x
+        val y = ev.y
+        // map view coords -> bitmap coords (fit centerInside). Approx using width/height scale.
+        val vw = binding.previewContainer.width.toFloat()
+        val vh = binding.previewContainer.height.toFloat()
+        val s = minOf(vw / base.width, vh / base.height).coerceAtLeast(0.0001f)
+        val ox = (vw - base.width * s) / 2f
+        val oy = (vh - base.height * s) / 2f
+        val bx = (x - ox) / s
+        val by = (y - oy) / s
+        val kf = keyframeAt(ov, currentTimeMs, create = true)
+        kf.cx = bx
+        kf.cy = by
+        renderPreview()
+    }
+
+    private fun addTextOverlay() {
+        if (filteredBitmap == null) { Toast.makeText(this, "Pilih video dulu", Toast.LENGTH_LONG).show(); return }
+        val input = android.widget.EditText(this).apply {
+            hint = "Teks overlay"
+            setText("XMotion")
+        }
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Tambah Teks Overlay")
+            .setView(input)
+            .setPositiveButton("Tambah") { _, _ ->
+                val text = input.text.toString().ifBlank { "XMotion" }
+                val bmp = textToBitmap(text)
+                val layer = OverlayLayer(bmp)
+                // default keyframe di tengah
+                layer.keyframes.add(Keyframe(0f,
+                    filteredBitmap!!.width / 2f, filteredBitmap!!.height / 2f, 0.4f, 0f))
+                overlays.add(layer)
+                selectedOverlay = layer
+                syncSliderToPlayhead()
+                renderPreview()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun textToBitmap(text: String): Bitmap {
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.WHITE
+            textSize = 120f
+            style = android.graphics.Paint.Style.FILL
+            typeface = android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.BOLD)
+            setShadowLayer(8f, 0f, 0f, android.graphics.Color.BLACK)
+        }
+        val bounds = android.graphics.Rect()
+        paint.getTextBounds(text, 0, text.length, bounds)
+        val w = bounds.width() + 40
+        val h = (bounds.height() + 40).coerceAtLeast(40)
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val c = android.graphics.Canvas(bmp)
+        c.drawText(text, -bounds.left + 20f, -bounds.top + 20f, paint)
+        return bmp
+    }
+
+    private fun keyframeAt(ov: OverlayLayer, tMs: Float, create: Boolean): Keyframe {
+        // ambil keyframe terdekat; bila none & create, buat
+        if (ov.keyframes.isEmpty()) {
+            val k = Keyframe(tMs, filteredBitmap!!.width / 2f, filteredBitmap!!.height / 2f, 0.4f, 0f)
+            ov.keyframes.add(k)
+            return k
+        }
+        val nearest = ov.keyframes.minByOrNull { kotlin.math.abs(it.tMs - tMs) }!!
+        if (create) {
+            // buat keyframe baru di tMs (salin nilai nearest)
+            val k = Keyframe(tMs, nearest.cx, nearest.cy, nearest.scale, nearest.rot)
+            ov.keyframes.add(k)
+            return k
+        }
+        return nearest
+    }
+
+    private fun transformAt(ov: OverlayLayer, tMs: Float): Keyframe {
+        val kf = ov.keyframes.filter { it.tMs <= tMs + 0.1f }
+        if (kf.isEmpty()) return ov.keyframes.first()
+        val next = ov.keyframes.filter { it.tMs > tMs + 0.1f }
+        val cur = kf.maxByOrNull { it.tMs }!!
+        if (next.isEmpty()) return cur
+        val nxt = next.minByOrNull { it.tMs }!!
+        val span = (nxt.tMs - cur.tMs).coerceAtLeast(0.001f)
+        val f = ((tMs - cur.tMs) / span).coerceIn(0f, 1f)
+        return Keyframe(tMs,
+            lerp(cur.cx, nxt.cx, f), lerp(cur.cy, nxt.cy, f),
+            lerp(cur.scale, nxt.scale, f), lerp(cur.rot, nxt.rot, f))
+    }
+
+    private fun lerp(a: Float, b: Float, f: Float) = a + (b - a) * f
+
+    private fun updateSelectedTransform() {
+        val ov = selectedOverlay ?: return
+        val kf = keyframeAt(ov, currentTimeMs, create = true)
+        kf.scale = binding.slScale.value
+        kf.rot = binding.slRot.value
+    }
+
+    private fun syncSliderToPlayhead() {
+        val ov = selectedOverlay
+        if (ov != null) {
+            val t = transformAt(ov, currentTimeMs)
+            binding.slScale.value = t.scale
+            binding.slRot.value = t.rot
+        }
+    }
+
+    private fun removeSelectedOverlay() {
+        val ov = selectedOverlay ?: run { Toast.makeText(this, "Tidak ada overlay", Toast.LENGTH_SHORT).show(); return }
+        overlays.remove(ov)
+        selectedOverlay = overlays.lastOrNull()
+        renderPreview()
+    }
+
+    private fun renderPreview() {
+        val base = filteredBitmap ?: return
+        if (overlays.isEmpty()) { binding.imgPreview.setImageBitmap(base); return }
+        val work = base.copy(Bitmap.Config.ARGB_8888, true)
+        val w = work.width; val h = work.height
+        val dst = IntArray(w * h)
+        work.getPixels(dst, 0, w, 0, 0, w, h)
+        for (ov in overlays) {
+            val t = transformAt(ov, currentTimeMs)
+            val ob = ov.bitmap
+            val opx = IntArray(ob.width * ob.height)
+            ob.getPixels(opx, 0, ob.width, 0, 0, ob.width, ob.height)
+            NativeLib.composeOverlay(dst, w, h, opx, ob.width, ob.height,
+                t.cx, t.cy, t.scale, t.rot, 1f)
+        }
+        work.setPixels(dst, 0, w, 0, 0, w, h)
+        binding.imgPreview.setImageBitmap(work)
     }
 
     /** Dipanggil lewat android:onClick pada preview container */
@@ -182,7 +354,7 @@ class MainActivity : AppCompatActivity() {
         }
         work.setPixels(px, 0, w, 0, 0, w, h)
         filteredBitmap = work
-        if (player == null) binding.imgPreview.setImageBitmap(work)
+        if (player == null) renderPreview()
     }
 
     private fun selectedFilterId(): Int = binding.chipFilter.checkedChipId
@@ -273,8 +445,24 @@ class MainActivity : AppCompatActivity() {
         val retriever = MediaMetadataRetriever()
         try {
             retriever.setDataSource(this, uri)
-            val frame = retriever.getFrameAtTime(durationMs / 2, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+            var frame = retriever.getFrameAtTime(durationMs / 2, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
                 ?: retriever.frameAtTime ?: run { Toast.makeText(this, "Gagal ambil frame", Toast.LENGTH_LONG).show(); return }
+            // komposisi overlay (multi-layer) ke frame foto
+            if (overlays.isNotEmpty()) {
+                frame = frame.copy(Bitmap.Config.ARGB_8888, true)
+                val w = frame.width; val h = frame.height
+                val dst = IntArray(w * h)
+                frame.getPixels(dst, 0, w, 0, 0, w, h)
+                for (ov in overlays) {
+                    val t = transformAt(ov, durationMs / 2f)
+                    val ob = ov.bitmap
+                    val opx = IntArray(ob.width * ob.height)
+                    ob.getPixels(opx, 0, ob.width, 0, 0, ob.width, ob.height)
+                    NativeLib.composeOverlay(dst, w, h, opx, ob.width, ob.height,
+                        t.cx, t.cy, t.scale, t.rot, 1f)
+                }
+                frame.setPixels(dst, 0, w, 0, 0, w, h)
+            }
             val values = android.content.ContentValues().apply {
                 put(MediaStore.Images.Media.DISPLAY_NAME, "xmotion_photo_${System.currentTimeMillis()}.jpg")
                 put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
