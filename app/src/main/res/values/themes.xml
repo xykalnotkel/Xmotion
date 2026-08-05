@@ -11,7 +11,5 @@
         <item name="android:statusBarColor">@color/black</item>
         <item name="android:navigationBarColor">@color/black</item>
         <item name="android:windowBackground">@color/near_black</item>
-        <item name="colorBackground">@color/near_black</item>
-        <item name="colorOnBackground">@color/white</item>
     </style>
 </resources>

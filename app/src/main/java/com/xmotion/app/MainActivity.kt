@@ -83,10 +83,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupTrim() {
-        binding.slTrimStart.addOnChangeListener { _, _, _ ->
-            binding.slTrimEnd.valueFrom = binding.slTrimStart.value + 1f
-            refreshTrimText()
-        }
+        binding.slTrimStart.addOnChangeListener { _, _, _ -> refreshTrimText() }
         binding.slTrimEnd.addOnChangeListener { _, _, _ -> refreshTrimText() }
     }
 
