@@ -43,52 +43,84 @@ Java_com_xmotion_app_native_NativeLib_processPixels(
     env->ReleaseIntArrayElements(pixels, arr, 0);
 }
 
-#define ARGB_PROC(F) \
-    if (!pixels) return; \
-    jint *arr = env->GetIntArrayElements(pixels, nullptr); \
-    if (!arr) return; \
-    for (int i = 0; i < length; i++) { \
-        unsigned int px = (unsigned int)arr[i]; \
-        int a = (px >> 24) & 0xFF, r = (px >> 16) & 0xFF, g = (px >> 8) & 0xFF, b = px & 0xFF; \
-        F; \
-        arr[i] = (a << 24) | (clampi(r) << 16) | (clampi(g) << 8) | clampi(b); \
-    } \
-    env->ReleaseIntArrayElements(pixels, arr, 0);
-
 extern "C" JNIEXPORT void JNICALL
 Java_com_xmotion_app_native_NativeLib_applyGrayscale(JNIEnv *env, jobject, jintArray pixels, jint length) {
-    ARGB_PROC({ int y = (int)(0.299f*r + 0.587f*g + 0.114f*b); r=y; g=y; b=y; })
+    if (!pixels) return;
+    jint *arr = env->GetIntArrayElements(pixels, nullptr); if (!arr) return;
+    for (int i = 0; i < length; i++) {
+        unsigned int px = (unsigned int)arr[i];
+        int a = (px >> 24) & 0xFF, r = (px >> 16) & 0xFF, g = (px >> 8) & 0xFF, b = px & 0xFF;
+        int y = (int)(0.299f*r + 0.587f*g + 0.114f*b); r = y; g = y; b = y;
+        arr[i] = (a << 24) | (clampi(r) << 16) | (clampi(g) << 8) | clampi(b);
+    }
+    env->ReleaseIntArrayElements(pixels, arr, 0);
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_xmotion_app_native_NativeLib_applySepia(JNIEnv *env, jobject, jintArray pixels, jint length, jfloat intensity) {
-    ARGB_PROC({
+    if (!pixels) return;
+    jint *arr = env->GetIntArrayElements(pixels, nullptr); if (!arr) return;
+    for (int i = 0; i < length; i++) {
+        unsigned int px = (unsigned int)arr[i];
+        int a = (px >> 24) & 0xFF, r = (px >> 16) & 0xFF, g = (px >> 8) & 0xFF, b = px & 0xFF;
         int tr=(int)(0.393f*r+0.769f*g+0.189f*b), tg=(int)(0.349f*r+0.686f*g+0.168f*b), tb=(int)(0.272f*r+0.534f*g+0.131f*b);
         r=(int)(r*(1-intensity)+tr*intensity); g=(int)(g*(1-intensity)+tg*intensity); b=(int)(b*(1-intensity)+tb*intensity);
-    })
+        arr[i] = (a << 24) | (clampi(r) << 16) | (clampi(g) << 8) | clampi(b);
+    }
+    env->ReleaseIntArrayElements(pixels, arr, 0);
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_xmotion_app_native_NativeLib_applyInvert(JNIEnv *env, jobject, jintArray pixels, jint length) {
-    ARGB_PROC({ r=255-r; g=255-g; b=255-b; })
+    if (!pixels) return;
+    jint *arr = env->GetIntArrayElements(pixels, nullptr); if (!arr) return;
+    for (int i = 0; i < length; i++) {
+        unsigned int px = (unsigned int)arr[i];
+        int a = (px >> 24) & 0xFF, r = (px >> 16) & 0xFF, g = (px >> 8) & 0xFF, b = px & 0xFF;
+        r=255-r; g=255-g; b=255-b;
+        arr[i] = (a << 24) | (clampi(r) << 16) | (clampi(g) << 8) | clampi(b);
+    }
+    env->ReleaseIntArrayElements(pixels, arr, 0);
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_xmotion_app_native_NativeLib_adjustBrightness(JNIEnv *env, jobject, jintArray pixels, jint length, jfloat amount) {
-    ARGB_PROC({ r=(int)(r+amount); g=(int)(g+amount); b=(int)(b+amount); })
+    if (!pixels) return;
+    jint *arr = env->GetIntArrayElements(pixels, nullptr); if (!arr) return;
+    for (int i = 0; i < length; i++) {
+        unsigned int px = (unsigned int)arr[i];
+        int a = (px >> 24) & 0xFF, r = (px >> 16) & 0xFF, g = (px >> 8) & 0xFF, b = px & 0xFF;
+        r=(int)(r+amount); g=(int)(g+amount); b=(int)(b+amount);
+        arr[i] = (a << 24) | (clampi(r) << 16) | (clampi(g) << 8) | clampi(b);
+    }
+    env->ReleaseIntArrayElements(pixels, arr, 0);
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_xmotion_app_native_NativeLib_adjustContrast(JNIEnv *env, jobject, jintArray pixels, jint length, jfloat factor) {
-    ARGB_PROC({ r=(int)((r-128)*factor+128); g=(int)((g-128)*factor+128); b=(int)((b-128)*factor+128); })
+    if (!pixels) return;
+    jint *arr = env->GetIntArrayElements(pixels, nullptr); if (!arr) return;
+    for (int i = 0; i < length; i++) {
+        unsigned int px = (unsigned int)arr[i];
+        int a = (px >> 24) & 0xFF, r = (px >> 16) & 0xFF, g = (px >> 8) & 0xFF, b = px & 0xFF;
+        r=(int)((r-128)*factor+128); g=(int)((g-128)*factor+128); b=(int)((b-128)*factor+128);
+        arr[i] = (a << 24) | (clampi(r) << 16) | (clampi(g) << 8) | clampi(b);
+    }
+    env->ReleaseIntArrayElements(pixels, arr, 0);
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_xmotion_app_native_NativeLib_adjustSaturation(JNIEnv *env, jobject, jintArray pixels, jint length, jfloat amount) {
-    ARGB_PROC({
+    if (!pixels) return;
+    jint *arr = env->GetIntArrayElements(pixels, nullptr); if (!arr) return;
+    for (int i = 0; i < length; i++) {
+        unsigned int px = (unsigned int)arr[i];
+        int a = (px >> 24) & 0xFF, r = (px >> 16) & 0xFF, g = (px >> 8) & 0xFF, b = px & 0xFF;
         float gray = 0.299f*r + 0.587f*g + 0.114f*b;
         r=(int)(gray + (r-gray)*amount); g=(int)(gray + (g-gray)*amount); b=(int)(gray + (b-gray)*amount);
-    })
+        arr[i] = (a << 24) | (clampi(r) << 16) | (clampi(g) << 8) | clampi(b);
+    }
+    env->ReleaseIntArrayElements(pixels, arr, 0);
 }
 
 // simple box blur (needs width & height for neighborhood)
