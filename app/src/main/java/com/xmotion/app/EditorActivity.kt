@@ -50,6 +50,9 @@ class EditorActivity : AppCompatActivity() {
     private val resHeights = arrayOf(0, 480, 720, 1080, 2160)
     private val fpsOptions = arrayOf("Auto", "24", "30", "60")
 
+    // index filter aktif (untuk export): 0 asli, 1 BW, 2 sepia, 3 invert, 4 vivid
+    private var activeFilter = 0
+
     inner class OverlayView(val text: String) {
         lateinit var view: TextView
         var scale = 1f
@@ -212,8 +215,42 @@ class EditorActivity : AppCompatActivity() {
     private fun setupFilterChips() {
         binding.chipFilter.setOnCheckedStateChangeListener { _, checked ->
             if (checked.isEmpty()) return@setOnCheckedStateChangeListener
-            Toast.makeText(this, "Filter diterapkan (native C++)", Toast.LENGTH_SHORT).show()
+            activeFilter = when (binding.chipFilter.checkedChipId) {
+                R.id.f1 -> 1
+                R.id.f2 -> 2
+                R.id.f3 -> 3
+                R.id.f4 -> 4
+                else -> 0
+            }
+            applyFilterToPreview()
+            Toast.makeText(this, "Filter: ${filterName(activeFilter)}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun filterName(i: Int) = when (i) { 1 -> "Hitam Putih"; 2 -> "Sepia"; 3 -> "Invert"; 4 -> "Vivid"; else -> "Asli" }
+
+    /** Terapkan filter real-time ke preview foto via ColorMatrix (GPU/hardware). */
+    private fun applyFilterToPreview() {
+        val cm = when (activeFilter) {
+            1 -> android.graphics.ColorMatrix().apply {
+                setSaturation(0f)
+            }
+            2 -> android.graphics.ColorMatrix(floatArrayOf(
+                0.393f,0.769f,0.189f,0f,0f,
+                0.349f,0.686f,0.168f,0f,0f,
+                0.272f,0.534f,0.131f,0f,0f,
+                0f,0f,0f,1f,0f))
+            3 -> android.graphics.ColorMatrix(floatArrayOf(
+                -1f,0f,0f,0f,255f,
+                0f,-1f,0f,0f,255f,
+                0f,0f,-1f,0f,255f,
+                0f,0f,0f,1f,0f))
+            4 -> android.graphics.ColorMatrix().apply {
+                setSaturation(1.8f)
+            }
+            else -> null
+        }
+        binding.imgPreview.colorFilter = if (cm != null) android.graphics.ColorMatrixColorFilter(cm) else null
     }
 
     private fun setupRatio() {
@@ -271,7 +308,7 @@ class EditorActivity : AppCompatActivity() {
                 val ok = withContext(Dispatchers.Default) {
                     OverlayVideoExporter.export(
                         this@EditorActivity, uri, out.absolutePath,
-                        targetH, fps, useHevc, overlayBitmaps, isVideo
+                        targetH, fps, useHevc, overlayBitmaps, isVideo, activeFilter
                     )
                 }
                 if (ok) {

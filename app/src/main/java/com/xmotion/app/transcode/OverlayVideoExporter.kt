@@ -46,7 +46,8 @@ object OverlayVideoExporter {
         fps: Int,
         useHevc: Boolean,
         overlayBitmaps: List<Bitmap>,
-        isVideo: Boolean
+        isVideo: Boolean,
+        filterIndex: Int = 0
     ): Boolean {
         var retriever: MediaMetadataRetriever? = null
         var encoder: MediaCodec? = null
@@ -107,6 +108,16 @@ object OverlayVideoExporter {
                 val scaled = scaleBitmap(frame, outW, outH)
                 val dst = IntArray(outW * outH)
                 scaled.getPixels(dst, 0, outW, 0, 0, outW, outH)
+
+                // apply filter (native C++) ke frame
+                if (filterIndex > 0) {
+                    when (filterIndex) {
+                        1 -> NativeLib.applyGrayscale(dst, dst.size)
+                        2 -> NativeLib.applySepia(dst, dst.size, 1f)
+                        3 -> NativeLib.applyInvert(dst, dst.size)
+                        4 -> NativeLib.adjustSaturation(dst, dst.size, 1.8f)
+                    }
+                }
 
                 // composite overlays
                 for (spec in specs) {
