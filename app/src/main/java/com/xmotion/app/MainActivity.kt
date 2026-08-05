@@ -302,18 +302,20 @@ class MainActivity : AppCompatActivity() {
         return 2160
     }
 
-    private fun addToMediaStore(file: File): Uri? = try {
-        val values = android.content.ContentValues().apply {
-            put(MediaStore.Video.Media.DISPLAY_NAME, "xmotion_${System.currentTimeMillis()}.mp4")
-            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-            put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/XMotion")
-            put(MediaStore.Video.Media.IS_PENDING, 1)
-        }
-        val c = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        val uri = contentResolver.insert(c, values) ?: return null
-        contentResolver.openOutputStream(uri)?.use { out -> file.inputStream().use { it.copyTo(out) } }
-        values.clear(); values.put(MediaStore.Video.Media.IS_PENDING, 0)
-        contentResolver.update(uri, values, null, null)
-        uri
-    } catch (e: Exception) { null }
+    private fun addToMediaStore(file: File): Uri? {
+        return try {
+            val values = android.content.ContentValues().apply {
+                put(MediaStore.Video.Media.DISPLAY_NAME, "xmotion_${System.currentTimeMillis()}.mp4")
+                put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+                put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/XMotion")
+                put(MediaStore.Video.Media.IS_PENDING, 1)
+            }
+            val c = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            val uri = contentResolver.insert(c, values) ?: return null
+            contentResolver.openOutputStream(uri)?.use { out -> file.inputStream().use { it.copyTo(out) } }
+            values.clear(); values.put(MediaStore.Video.Media.IS_PENDING, 0)
+            contentResolver.update(uri, values, null, null)
+            uri
+        } catch (e: Exception) { null }
+    }
 }
